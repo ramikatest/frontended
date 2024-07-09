@@ -71,10 +71,10 @@ a:hover {
 <body>
 
 <div class="container">
-    <h2>Login to Your Account</h2>
+    <h2>Login Now</h2>
     <form id="signin-form">
-        <label for="username">Username</label>
-        <input type="text" id="signin-username" placeholder="Enter your username" required>
+        <label for="email">Email</label>
+        <input type="email" id="signin-email" placeholder="Enter your username" required>
 
         <label for="password">Password</label>
         <input type="password" id="signin-password" placeholder="Enter your password" required>
@@ -104,7 +104,7 @@ const database = getDatabase(app);
 const signinForm = document.getElementById('signin-form');
 signinForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = document.getElementById('signin-username').value;
+    const email = document.getElementById('signin-email').value;
     const password = document.getElementById('signin-password').value;
 
     try {
