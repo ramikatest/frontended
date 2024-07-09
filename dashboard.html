@@ -57,8 +57,8 @@
 </head>
 <body>
     <div class="container">
-        <h3>Hi <span id="user-name"></span>, View Posts</h3>
-<p id="user-phone">0614003543</p>
+        <h3>Hi, View Posts</h3>
+<p id="userList"></p>
         <div class="post">
             <div class="post-content">
                 <img src="images.jpeg" alt="Profile Picture">
@@ -91,7 +91,8 @@
     <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js';
 import { getAuth, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js';
-import { getDatabase, ref, set } from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-database.js';
+import { getDatabase, ref, set, child, get } from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-database.js';
+
 const firebaseConfig = {
     apiKey: "AIzaSyDpDRju6_w4_YJqIJa39IyoAIw3ZTYYz2k",
     authDomain: "frontended-test.firebaseapp.com",
@@ -100,37 +101,54 @@ const firebaseConfig = {
     messagingSenderId: "1029250073555",
     appId: "1:1029250073555:web:1d0b24ec1bd092dd81a526"
   };
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const database = getDatabase(app);
 
-const getUserInfo = async () => {
-    const user = auth.currentUser;
-    if (user) {
-        const userRef = ref(database, 'users/' + user.uid);
-        const snapshot = await get(userRef);
+// Function to fetch user email and phone number by user ID
+async function getUserDataById(userId) {
+    const userRef = ref(database, 'users/' + userId);
+    const userSnapshot = await get(userRef);
 
-        if (snapshot.exists()) {
-            const userData = snapshot.val();
-            const userNameElement = document.getElementById('user-name');
-            const userPhoneElement = document.getElementById('user-phone');
-            
-            if (userData && userNameElement && userPhoneElement) {
-                userNameElement.textContent = userData.name || 'N/A';
-                userPhoneElement.textContent = userData.phone || 'N/A';
-            } else {
-                console.error('User data or elements not found');
-            }
-        } else {
-            console.log('User data not found');
-        }
+    if (userSnapshot.exists()) {
+        const userData = userSnapshot.val();
+        const userEmail = userData.email;
+        const userPhone = userData.phone;
+
+        return { userId, email: userEmail, phone: userPhone };
     } else {
-        console.log('User not logged in');
-        // Redirect to login page if not logged in
-        window.location.replace('index.html');
+        throw new Error('User with ID ' + userId + ' not found');
     }
-};
+}
+
+// Function to fetch and display information for all users
+async function displayAllUserInformation() {
+    const usersRef = ref(database, 'users');
+    const usersSnapshot = await get(usersRef);
+
+    if (usersSnapshot.exists()) {
+        usersSnapshot.forEach((user) => {
+            const userId = user.key;
+            getUserDataById(userId)
+                .then((userData) => {
+                    console.log('User Data:', userData);
+
+                    // Update the DOM with user information
+                    const userInfoElement = document.createElement('div');
+                    userInfoElement.textContent = `UserID: ${userData.userId}, Email: ${userData.email}, Phone: ${userData.phone}`;
+                    document.getElementById('userList').appendChild(userInfoElement);
+                })
+                .catch((error) => {
+                    console.error('Error fetching user data:', error.message);
+                });
+        });
+    } else {
+        console.error('No users found in the database');
+    }
+}
+
+// Call the displayAllUserInformation function to fetch and display information for all users
+displayAllUserInformation();
 getUserInfo();
 </script>
 </body>
